@@ -23,3 +23,12 @@ jobs:
 
     - name: Get dependencies
       run: make otelcontribcol
+    
+    - name: Repository Dispatch
+      if: github.event_name == 'push'
+      uses: peter-evans/repository-dispatch@v1.1.1
+      with:
+        token: "${{ secrets.REPO_WRITE_ACCESS_TOKEN }}"
+        repository: mxiamxia/aws-opentelemetry-collector
+        event-type: dependency-build
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
