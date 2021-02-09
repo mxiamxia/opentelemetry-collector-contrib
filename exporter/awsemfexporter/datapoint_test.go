@@ -290,7 +290,8 @@ func TestIntDataPointSliceAt(t *testing.T) {
 			expectedDP := DataPoint{
 				Value: tc.value,
 				Labels: map[string]string{
-					"label1": "value1",
+					oTellibDimensionKey: instrLibName,
+					"label1":            "value1",
 				},
 			}
 
@@ -350,7 +351,8 @@ func TestDoubleDataPointSliceAt(t *testing.T) {
 			expectedDP := DataPoint{
 				Value: tc.value,
 				Labels: map[string]string{
-					"label1": "value1",
+					oTellibDimensionKey: instrLibName,
+					"label1":            "value1",
 				},
 			}
 
@@ -385,7 +387,8 @@ func TestDoubleHistogramDataPointSliceAt(t *testing.T) {
 			Count: 17,
 		},
 		Labels: map[string]string{
-			"label1": "value1",
+			oTellibDimensionKey: instrLibName,
+			"label1":            "value1",
 		},
 	}
 
@@ -425,7 +428,8 @@ func TestDoubleSummaryDataPointSliceAt(t *testing.T) {
 			Sum:   17.13,
 		},
 		Labels: map[string]string{
-			"label1": "value1",
+			oTellibDimensionKey: instrLibName,
+			"label1":            "value1",
 		},
 	}
 
@@ -442,11 +446,12 @@ func TestCreateLabels(t *testing.T) {
 	}
 	labelsMap := pdata.NewStringMap().InitFromMap(expectedLabels)
 
-	labels := createLabels(labelsMap)
+	labels := createLabels(labelsMap, noInstrumentationLibraryName)
 	assert.Equal(t, expectedLabels, labels)
 
 	// With isntrumentation library name
-	labels = createLabels(labelsMap)
+	labels = createLabels(labelsMap, "cloudwatch-otel")
+	expectedLabels[oTellibDimensionKey] = "cloudwatch-otel"
 	assert.Equal(t, expectedLabels, labels)
 }
 
@@ -708,13 +713,13 @@ func BenchmarkGetDataPoints(b *testing.B) {
 }
 
 func TestGetSortedLabelsEquals(t *testing.T) {
-	labelMap1 := pdata.NewStringMap()
-	labelMap1.Insert("k1", "v1")
-	labelMap1.Insert("k2", "v2")
+	labelMap1 := make(map[string]string)
+	labelMap1["k1"] = "v1"
+	labelMap1["k2"] = "v2"
 
-	labelMap2 := pdata.NewStringMap()
-	labelMap2.Insert("k2", "v2")
-	labelMap2.Insert("k1", "v1")
+	labelMap2 := make(map[string]string)
+	labelMap2["k2"] = "v2"
+	labelMap2["k1"] = "v1"
 
 	sortedLabels1 := getSortedLabels(labelMap1)
 	sortedLabels2 := getSortedLabels(labelMap2)
@@ -737,13 +742,13 @@ func TestGetSortedLabelsEquals(t *testing.T) {
 }
 
 func TestGetSortedLabelsNotEqual(t *testing.T) {
-	labelMap1 := pdata.NewStringMap()
-	labelMap1.Insert("k1", "v1")
-	labelMap1.Insert("k2", "v2")
+	labelMap1 := make(map[string]string)
+	labelMap1["k1"] = "v1"
+	labelMap1["k2"] = "v2"
 
-	labelMap2 := pdata.NewStringMap()
-	labelMap2.Insert("k2", "v2")
-	labelMap2.Insert("k1", "v3")
+	labelMap2 := make(map[string]string)
+	labelMap2["k2"] = "v2"
+	labelMap2["k1"] = "v3"
 
 	sortedLabels1 := getSortedLabels(labelMap1)
 	sortedLabels2 := getSortedLabels(labelMap2)
@@ -766,13 +771,13 @@ func TestGetSortedLabelsNotEqual(t *testing.T) {
 }
 
 func TestGetSortedLabelsNotEqualOnPram(t *testing.T) {
-	labelMap1 := pdata.NewStringMap()
-	labelMap1.Insert("k1", "v1")
-	labelMap1.Insert("k2", "v2")
+	labelMap1 := make(map[string]string)
+	labelMap1["k1"] = "v1"
+	labelMap1["k2"] = "v2"
 
-	labelMap2 := pdata.NewStringMap()
-	labelMap2.Insert("k2", "v2")
-	labelMap2.Insert("k1", "v1")
+	labelMap2 := make(map[string]string)
+	labelMap2["k2"] = "v2"
+	labelMap2["k1"] = "v1"
 
 	sortedLabels1 := getSortedLabels(labelMap1)
 	sortedLabels2 := getSortedLabels(labelMap2)
