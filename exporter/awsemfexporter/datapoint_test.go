@@ -308,7 +308,6 @@ func TestIntDataPointSliceAt(t *testing.T) {
 			assert.Equal(t, 1, dps.Len())
 			dp := dps.At(0)
 			if strings.Contains(tc.testName, "2nd rate") {
-				assert.True(t, (expectedDP.Value.(float64)-dp.Value.(float64)) > 0)
 				assert.True(t, (expectedDP.Value.(float64)-dp.Value.(float64)) < 0.01)
 			} else {
 				assert.Equal(t, expectedDP, dp)
@@ -385,8 +384,7 @@ func TestDoubleDataPointSliceAt(t *testing.T) {
 			assert.Equal(t, 1, dps.Len())
 			dp := dps.At(0)
 			if strings.Contains(tc.testName, "2nd rate") {
-				assert.True(t, (expectedDP.Value.(float64)-dp.Value.(float64)) > 0)
-				assert.True(t, (expectedDP.Value.(float64)-dp.Value.(float64)) < 0.001)
+				assert.True(t, (expectedDP.Value.(float64)-dp.Value.(float64)) < 0.002)
 			} else {
 				assert.Equal(t, expectedDP, dp)
 			}

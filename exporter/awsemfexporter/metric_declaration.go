@@ -139,7 +139,7 @@ func (m *MetricDeclaration) MatchesName(metricName string) bool {
 	return false
 }
 
-// MatchesName returns true if the given OTLP Metric's name matches any of the Metric
+// MatchesLabels returns true if the given OTLP Metric's name matches any of the Metric
 // Declaration's label matchers.
 func (m *MetricDeclaration) MatchesLabels(labels map[string]string) bool {
 	if len(m.LabelMatchers) == 0 {
