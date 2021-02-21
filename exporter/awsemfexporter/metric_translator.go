@@ -65,8 +65,22 @@ type CWMetricMetadata struct {
 	InstrumentationLibraryName string
 }
 
-// TranslateOtToGroupedMetric converts OT metrics to Grouped Metric format.
-func TranslateOtToGroupedMetric(rm *pdata.ResourceMetrics, groupedMetrics map[interface{}]*GroupedMetric, config *Config) {
+type metricTranslator struct {
+	metricDescriptor map[string]MetricDescriptor
+}
+
+func newMetricTranslator(config Config) metricTranslator {
+	mt := map[string]MetricDescriptor{}
+	for _, descriptor := range config.MetricDescriptors {
+		mt[descriptor.metricName] = descriptor
+	}
+	return metricTranslator{
+		metricDescriptor: mt,
+	}
+}
+
+// translateOTelToGroupedMetric converts OT metrics to Grouped Metric format.
+func (mt metricTranslator) translateOTelToGroupedMetric(rm *pdata.ResourceMetrics, groupedMetrics map[interface{}]*GroupedMetric, config *Config) {
 	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
 	var instrumentationLibName string
 	cWNamespace := getNamespace(rm, config.Namespace)
@@ -91,13 +105,13 @@ func TranslateOtToGroupedMetric(rm *pdata.ResourceMetrics, groupedMetrics map[in
 				LogStream:                  logStream,
 				InstrumentationLibraryName: instrumentationLibName,
 			}
-			addToGroupedMetric(&metric, groupedMetrics, metadata, config.logger)
+			addToGroupedMetric(&metric, groupedMetrics, metadata, config.logger, mt.metricDescriptor)
 		}
 	}
 }
 
-// TranslateGroupedMetricToCWMetric converts Grouped Metric format to CloudWatch Metric format.
-func TranslateGroupedMetricToCWMetric(groupedMetric *GroupedMetric, config *Config) *CWMetrics {
+// translateGroupedMetricToCWMetric converts Grouped Metric format to CloudWatch Metric format.
+func translateGroupedMetricToCWMetric(groupedMetric *GroupedMetric, config *Config) *CWMetrics {
 	labels := groupedMetric.Labels
 	fields := make(map[string]interface{}, len(labels)+len(groupedMetric.Metrics))
 
@@ -281,8 +295,8 @@ func groupedMetricToCWMeasurementsWithFilters(groupedMetric *GroupedMetric, conf
 	return
 }
 
-// TranslateCWMetricToEMF converts CloudWatch Metric format to EMF.
-func TranslateCWMetricToEMF(cWMetric *CWMetrics) *LogEvent {
+// translateCWMetricToEMF converts CloudWatch Metric format to EMF.
+func translateCWMetricToEMF(cWMetric *CWMetrics) *LogEvent {
 	// convert CWMetric into map format for compatible with PLE input
 	cWMetricMap := make(map[string]interface{})
 	fieldMap := cWMetric.Fields

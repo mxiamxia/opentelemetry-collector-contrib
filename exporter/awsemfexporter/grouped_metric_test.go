@@ -145,7 +145,7 @@ func TestAddToGroupedMetric(t *testing.T) {
 			assert.Equal(t, 1, metrics.Len())
 			metric := metrics.At(0)
 
-			addToGroupedMetric(&metric, groupedMetrics, metadata, zap.NewNop())
+			addToGroupedMetric(&metric, groupedMetrics, metadata, zap.NewNop(), nil)
 			expectedLabels := map[string]string{
 				oTellibDimensionKey: instrumentationLibName,
 				"label1":            "value1",
@@ -188,7 +188,7 @@ func TestAddToGroupedMetric(t *testing.T) {
 
 		for i := 0; i < metrics.Len(); i++ {
 			metric := metrics.At(i)
-			addToGroupedMetric(&metric, groupedMetrics, metadata, logger)
+			addToGroupedMetric(&metric, groupedMetrics, metadata, logger, nil)
 		}
 
 		assert.Equal(t, 1, len(groupedMetrics))
@@ -251,7 +251,7 @@ func TestAddToGroupedMetric(t *testing.T) {
 
 		for i := 0; i < metrics.Len(); i++ {
 			metric := metrics.At(i)
-			addToGroupedMetric(&metric, groupedMetrics, metadata, logger)
+			addToGroupedMetric(&metric, groupedMetrics, metadata, logger, nil)
 		}
 
 		assert.Equal(t, 3, len(groupedMetrics))
@@ -296,7 +296,7 @@ func TestAddToGroupedMetric(t *testing.T) {
 			LogStream:                  logStreamName,
 			InstrumentationLibraryName: instrumentationLibName,
 		}
-		addToGroupedMetric(&metric, groupedMetrics, metricMetadata1, logger)
+		addToGroupedMetric(&metric, groupedMetrics, metricMetadata1, logger, nil)
 
 		metricMetadata2 := CWMetricMetadata{
 			Namespace:                  namespace,
@@ -305,7 +305,7 @@ func TestAddToGroupedMetric(t *testing.T) {
 			LogStream:                  logStreamName,
 			InstrumentationLibraryName: instrumentationLibName,
 		}
-		addToGroupedMetric(&metric, groupedMetrics, metricMetadata2, logger)
+		addToGroupedMetric(&metric, groupedMetrics, metricMetadata2, logger, nil)
 
 		assert.Equal(t, 2, len(groupedMetrics))
 		seenLogGroup1 := false
@@ -360,7 +360,7 @@ func TestAddToGroupedMetric(t *testing.T) {
 
 		for i := 0; i < metrics.Len(); i++ {
 			metric := metrics.At(i)
-			addToGroupedMetric(&metric, groupedMetrics, metadata, obsLogger)
+			addToGroupedMetric(&metric, groupedMetrics, metadata, obsLogger, nil)
 		}
 		assert.Equal(t, 1, len(groupedMetrics))
 
@@ -396,7 +396,7 @@ func TestAddToGroupedMetric(t *testing.T) {
 
 		obs, logs := observer.New(zap.WarnLevel)
 		obsLogger := zap.New(obs)
-		addToGroupedMetric(&metric, groupedMetrics, metadata, obsLogger)
+		addToGroupedMetric(&metric, groupedMetrics, metadata, obsLogger, nil)
 		assert.Equal(t, 0, len(groupedMetrics))
 
 		// Test output warning logs
@@ -416,7 +416,7 @@ func TestAddToGroupedMetric(t *testing.T) {
 
 	t.Run("Nil metric", func(t *testing.T) {
 		groupedMetrics := make(map[interface{}]*GroupedMetric)
-		addToGroupedMetric(nil, groupedMetrics, metadata, logger)
+		addToGroupedMetric(nil, groupedMetrics, metadata, logger, nil)
 		assert.Equal(t, 0, len(groupedMetrics))
 	})
 }
@@ -451,7 +451,48 @@ func BenchmarkAddToGroupedMetric(b *testing.B) {
 		groupedMetrics := make(map[interface{}]*GroupedMetric)
 		for i := 0; i < numMetrics; i++ {
 			metric := metrics.At(i)
-			addToGroupedMetric(&metric, groupedMetrics, metadata, logger)
+			addToGroupedMetric(&metric, groupedMetrics, metadata, logger, nil)
 		}
 	}
+}
+
+func TestTranslateUnit(t *testing.T) {
+	metric := pdata.NewMetric()
+	metric.SetName("writeIfNotExist")
+
+	translator := &metricTranslator{
+		metricDescriptor: map[string]MetricDescriptor{
+			"writeIfNotExist": {
+				metricName: "writeIfNotExist",
+				unit:       "Count",
+				overwrite:  false,
+			},
+			"forceOverwrite": {
+				metricName: "forceOverwrite",
+				unit:       "Count",
+				overwrite:  true,
+			},
+		},
+	}
+
+	translateUnitCases := map[string]string{
+		"Count": "Count",
+		"ms":    "Milliseconds",
+		"s":     "Seconds",
+		"us":    "Microseconds",
+		"By":    "Bytes",
+		"Bi":    "Bits",
+	}
+	for input, output := range translateUnitCases {
+		t.Run(input, func(tt *testing.T) {
+			metric.SetUnit(input)
+
+			v := translateUnit(&metric, translator.metricDescriptor)
+			assert.Equal(t, output, v)
+		})
+	}
+
+	metric.SetName("forceOverwrite")
+	v := translateUnit(&metric, translator.metricDescriptor)
+	assert.Equal(t, "Count", v)
 }

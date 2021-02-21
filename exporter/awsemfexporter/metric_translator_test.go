@@ -395,6 +395,8 @@ func TestTranslateOtToGroupedMetric(t *testing.T) {
 	}
 	md := createMetricTestData()
 
+	translator := newMetricTranslator(*config)
+
 	noInstrLibMetric := internaldata.OCToMetrics(md).ResourceMetrics().At(0)
 	instrLibMetric := internaldata.OCToMetrics(md).ResourceMetrics().At(0)
 	ilm := instrLibMetric.InstrumentationLibraryMetrics().At(0)
@@ -482,7 +484,7 @@ func TestTranslateOtToGroupedMetric(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 			groupedMetrics := make(map[interface{}]*GroupedMetric)
-			TranslateOtToGroupedMetric(tc.metric, groupedMetrics, config)
+			translator.translateOTelToGroupedMetric(tc.metric, groupedMetrics, config)
 			assert.NotNil(t, groupedMetrics)
 			assert.Equal(t, 2, len(groupedMetrics))
 
@@ -514,7 +516,7 @@ func TestTranslateOtToGroupedMetric(t *testing.T) {
 		}
 		rm := internaldata.OCToMetrics(md).ResourceMetrics().At(0)
 		groupedMetrics := make(map[interface{}]*GroupedMetric)
-		TranslateOtToGroupedMetric(&rm, groupedMetrics, config)
+		translator.translateOTelToGroupedMetric(&rm, groupedMetrics, config)
 		assert.Equal(t, 0, len(groupedMetrics))
 	})
 }
@@ -539,7 +541,7 @@ func TestTranslateCWMetricToEMF(t *testing.T) {
 		Fields:       fields,
 		Measurements: []CWMeasurement{cwMeasurement},
 	}
-	inputLogEvent := TranslateCWMetricToEMF(met)
+	inputLogEvent := translateCWMetricToEMF(met)
 
 	assert.Equal(t, readFromFile("testdata/testTranslateCWMetricToEMF.json"), *inputLogEvent.InputLogEvent.Message, "Expect to be equal")
 }
@@ -808,7 +810,7 @@ func TestTranslateGroupedMetricToCWMetric(t *testing.T) {
 			for _, decl := range tc.metricDeclarations {
 				decl.Init(logger)
 			}
-			cWMetric := TranslateGroupedMetricToCWMetric(tc.groupedMetric, config)
+			cWMetric := translateGroupedMetricToCWMetric(tc.groupedMetric, config)
 			assert.NotNil(t, cWMetric)
 			assertCWMetricsEqual(t, tc.expectedCWMetric, cWMetric)
 		})
@@ -1951,7 +1953,7 @@ func TestTranslateCWMetricToEMFNoMeasurements(t *testing.T) {
 		Fields:       fields,
 		Measurements: nil,
 	}
-	inputLogEvent := TranslateCWMetricToEMF(met)
+	inputLogEvent := translateCWMetricToEMF(met)
 	expected := "{\"OTelLib\":\"cloudwatch-otel\",\"spanCounter\":0,\"spanName\":\"test\"}"
 
 	assert.Equal(t, expected, *inputLogEvent.InputLogEvent.Message)
@@ -1968,11 +1970,12 @@ func BenchmarkTranslateOtToGroupedMetricWithInstrLibrary(b *testing.B) {
 		DimensionRollupOption: zeroAndSingleDimensionRollup,
 		logger:                zap.NewNop(),
 	}
+	translator := newMetricTranslator(*config)
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		groupedMetric := make(map[interface{}]*GroupedMetric)
-		TranslateOtToGroupedMetric(&rm, groupedMetric, config)
+		translator.translateOTelToGroupedMetric(&rm, groupedMetric, config)
 	}
 }
 
@@ -1984,11 +1987,12 @@ func BenchmarkTranslateOtToGroupedMetricWithoutInstrLibrary(b *testing.B) {
 		DimensionRollupOption: zeroAndSingleDimensionRollup,
 		logger:                zap.NewNop(),
 	}
+	translator := newMetricTranslator(*config)
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		groupedMetrics := make(map[interface{}]*GroupedMetric)
-		TranslateOtToGroupedMetric(&rm, groupedMetrics, config)
+		translator.translateOTelToGroupedMetric(&rm, groupedMetrics, config)
 	}
 }
 
@@ -2021,7 +2025,7 @@ func BenchmarkTranslateGroupedMetricToCWMetric(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		TranslateGroupedMetricToCWMetric(groupedMetric, config)
+		translateGroupedMetricToCWMetric(groupedMetric, config)
 	}
 }
 
@@ -2060,7 +2064,7 @@ func BenchmarkTranslateGroupedMetricToCWMetricWithFiltering(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		TranslateGroupedMetricToCWMetric(groupedMetric, config)
+		translateGroupedMetricToCWMetric(groupedMetric, config)
 	}
 }
 
@@ -2087,6 +2091,6 @@ func BenchmarkTranslateCWMetricToEMF(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		TranslateCWMetricToEMF(met)
+		translateCWMetricToEMF(met)
 	}
 }

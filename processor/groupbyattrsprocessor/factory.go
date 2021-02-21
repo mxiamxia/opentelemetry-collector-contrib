@@ -17,7 +17,6 @@ package groupbyattrsprocessor
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
@@ -37,14 +36,10 @@ var (
 	processorCapabilities        = component.ProcessorCapabilities{MutatesConsumedData: true}
 )
 
-var once sync.Once
-
 // NewFactory returns a new factory for the Filter processor.
 func NewFactory() component.ProcessorFactory {
-	once.Do(func() {
-		// TODO: as with other -contrib factories registering metrics, this is causing the error being ignored
-		_ = view.Register(MetricViews()...)
-	})
+	// TODO: as with other -contrib factories registering metrics, this is causing the error being ignored
+	_ = view.Register(MetricViews()...)
 
 	return processorhelper.NewFactory(
 		typeStr,

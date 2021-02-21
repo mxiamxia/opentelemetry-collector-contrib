@@ -35,7 +35,7 @@ type MetricInfo struct {
 }
 
 // addToGroupedMetric processes OT metrics and adds them into GroupedMetric buckets
-func addToGroupedMetric(pmd *pdata.Metric, groupedMetrics map[interface{}]*GroupedMetric, metadata CWMetricMetadata, logger *zap.Logger) {
+func addToGroupedMetric(pmd *pdata.Metric, groupedMetrics map[interface{}]*GroupedMetric, metadata CWMetricMetadata, logger *zap.Logger, descriptor map[string]MetricDescriptor) {
 	if pmd == nil {
 		return
 	}
@@ -51,7 +51,7 @@ func addToGroupedMetric(pmd *pdata.Metric, groupedMetrics map[interface{}]*Group
 		labels := dp.Labels
 		metric := &MetricInfo{
 			Value: dp.Value,
-			Unit:  pmd.Unit(),
+			Unit:  translateUnit(pmd, descriptor),
 		}
 
 		if dp.TimestampMs > 0 {
@@ -87,4 +87,26 @@ func addToGroupedMetric(pmd *pdata.Metric, groupedMetrics map[interface{}]*Group
 			}
 		}
 	}
+}
+
+func translateUnit(metric *pdata.Metric, descriptor map[string]MetricDescriptor) string {
+	unit := metric.Unit()
+	if descriptor, exists := descriptor[metric.Name()]; exists {
+		if unit == "" || descriptor.overwrite {
+			return descriptor.unit
+		}
+	}
+	switch unit {
+	case "ms":
+		unit = "Milliseconds"
+	case "s":
+		unit = "Seconds"
+	case "us":
+		unit = "Microseconds"
+	case "By":
+		unit = "Bytes"
+	case "Bi":
+		unit = "Bits"
+	}
+	return unit
 }

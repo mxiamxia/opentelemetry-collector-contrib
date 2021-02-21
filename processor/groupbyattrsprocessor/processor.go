@@ -17,7 +17,6 @@ package groupbyattrsprocessor
 import (
 	"context"
 
-	"go.opencensus.io/stats"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.uber.org/zap"
 )
@@ -28,7 +27,7 @@ type groupByAttrsProcessor struct {
 }
 
 // ProcessTraces process traces and groups traces by attribute.
-func (gap *groupByAttrsProcessor) ProcessTraces(ctx context.Context, td pdata.Traces) (pdata.Traces, error) {
+func (gap *groupByAttrsProcessor) ProcessTraces(_ context.Context, td pdata.Traces) (pdata.Traces, error) {
 	rss := td.ResourceSpans()
 	extractedGroups := newSpansGroupedByAttrs()
 
@@ -43,12 +42,12 @@ func (gap *groupByAttrsProcessor) ProcessTraces(ctx context.Context, td pdata.Tr
 
 				groupedAnything, groupedAttrMap := gap.splitAttrMap(span.Attributes())
 				if groupedAnything {
-					stats.Record(ctx, mNumGroupedSpans.M(1))
+					mNumGroupedSpans.M(1)
 					// Some attributes are going to be moved from span to resource level,
 					// so we can delete those on the record level
 					deleteAttributes(groupedAttrMap, span.Attributes())
 				} else {
-					stats.Record(ctx, mNumNonGroupedSpans.M(1))
+					mNumNonGroupedSpans.M(1)
 				}
 
 				// Lets combine the base resource attributes + the extracted (grouped) attributes
@@ -65,12 +64,12 @@ func (gap *groupByAttrsProcessor) ProcessTraces(ctx context.Context, td pdata.Tr
 	for _, eg := range *extractedGroups {
 		groupedResourceSpans.Append(eg)
 	}
-	stats.Record(ctx, mDistSpanGroups.M(int64(len(*extractedGroups))))
+	mDistSpanGroups.M(int64(len(*extractedGroups)))
 
 	return groupedTraces, nil
 }
 
-func (gap *groupByAttrsProcessor) ProcessLogs(ctx context.Context, ld pdata.Logs) (pdata.Logs, error) {
+func (gap *groupByAttrsProcessor) ProcessLogs(_ context.Context, ld pdata.Logs) (pdata.Logs, error) {
 	rl := ld.ResourceLogs()
 	extractedGroups := newLogsGroupedByAttrs()
 
@@ -85,12 +84,12 @@ func (gap *groupByAttrsProcessor) ProcessLogs(ctx context.Context, ld pdata.Logs
 
 				groupedAnything, groupedAttrMap := gap.splitAttrMap(log.Attributes())
 				if groupedAnything {
-					stats.Record(ctx, mNumGroupedLogs.M(1))
+					mNumGroupedLogs.M(1)
 					// Some attributes are going to be moved from log record to resource level,
 					// so we can delete those on the record level
 					deleteAttributes(groupedAttrMap, log.Attributes())
 				} else {
-					stats.Record(ctx, mNumNonGroupedLogs.M(1))
+					mNumNonGroupedLogs.M(1)
 				}
 
 				// Lets combine the base resource attributes + the extracted (grouped) attributes
@@ -108,7 +107,7 @@ func (gap *groupByAttrsProcessor) ProcessLogs(ctx context.Context, ld pdata.Logs
 	for _, eg := range *extractedGroups {
 		groupedResourceLogs.Append(eg)
 	}
-	stats.Record(ctx, mDistLogGroups.M(int64(len(*extractedGroups))))
+	mDistLogGroups.M(int64(len(*extractedGroups)))
 
 	return groupedLogs, nil
 }
