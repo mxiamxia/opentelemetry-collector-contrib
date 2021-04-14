@@ -12,6 +12,7 @@ require (
 	github.com/onsi/ginkgo v1.14.1 // indirect
 	github.com/onsi/gomega v1.10.2 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/xray v0.0.0-00010101000000-000000000000
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/utils v0.0.0-00010101000000-000000000000
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	go.opentelemetry.io/collector v0.24.1-0.20210412223022-a17ee13a0052
@@ -21,3 +22,5 @@ require (
 )
 
 replace github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/xray => ./../../internal/aws/xray
+
+replace github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/utils => ./../../internal/aws/utils

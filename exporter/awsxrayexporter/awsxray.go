@@ -27,6 +27,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter/translator"
+	awsutil "github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/utils"
 )
 
 const (
@@ -36,11 +37,11 @@ const (
 // newTraceExporter creates an component.TraceExporter that converts to an X-Ray PutTraceSegments
 // request and then posts the request to the configured region's X-Ray endpoint.
 func newTraceExporter(
-	config config.Exporter, params component.ExporterCreateParams, cn connAttr) (component.TracesExporter, error) {
+	config config.Exporter, params component.ExporterCreateParams, cn awsutil.ConnAttr) (component.TracesExporter, error) {
 	typeLog := zap.String("type", string(config.Type()))
 	nameLog := zap.String("name", config.Name())
 	logger := params.Logger
-	awsConfig, session, err := GetAWSConfigSession(logger, cn, config.(*Config))
+	awsConfig, session, err := awsutil.GetAWSConfigSession(logger, cn, &config.(*Config).AWSSessionSettings)
 	if err != nil {
 		return nil, err
 	}
