@@ -10,7 +10,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/collector v0.79.1-0.20230609201858-ed8547a8e5d6
 	go.opentelemetry.io/collector/component v0.79.1-0.20230609201858-ed8547a8e5d6
-	go.opentelemetry.io/collector/confmap v0.79.1-0.20230609201858-ed8547a8e5d6
+	go.opentelemetry.io/collector/confmap v0.80.0
 	go.opentelemetry.io/collector/consumer v0.79.1-0.20230609201858-ed8547a8e5d6
 	go.opentelemetry.io/collector/exporter v0.79.1-0.20230609201858-ed8547a8e5d6
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0012.0.20230609201858-ed8547a8e5d6
@@ -44,7 +44,7 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/collector/extension v0.0.0-20230609200026-525adf4a682a // indirect
-	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0012.0.20230609201858-ed8547a8e5d6 // indirect
+	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0013 // indirect
 	go.opentelemetry.io/collector/processor v0.0.0-20230609193203-89d1060c7606 // indirect
 	go.opentelemetry.io/collector/receiver v0.79.1-0.20230609201858-ed8547a8e5d6 // indirect
 	go.opentelemetry.io/collector/semconv v0.79.1-0.20230609201858-ed8547a8e5d6 // indirect
