@@ -8,7 +8,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.86.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/docker v0.86.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.86.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.23.0
 	go.opentelemetry.io/collector/component v0.86.0
 	go.opentelemetry.io/collector/confmap v0.86.0
@@ -16,7 +16,7 @@ require (
 	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0015
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0015
 	go.opentelemetry.io/collector/receiver v0.86.0
-	go.opentelemetry.io/collector/semconv v0.86.0
+	go.opentelemetry.io/collector/semconv v0.98.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.26.0
 )
